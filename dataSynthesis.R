@@ -12,3 +12,4 @@ merged_data <- merge(LOswego, LOswegoSamples, by = "dateTime", all = TRUE)
 library(dplyr)
 merged_data1 <- LOswego %>%
   inner_join(LOswegoSamples, by = "dateTime")
+asc
