@@ -1,0 +1,90 @@
+---
+title: "Testing"
+author: "Aurora Villa Juan"
+date: "2024-10-18"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+library(dplyr)
+merged_data1 <- LOswego %>%
+  inner_join(LOswegoSamples, by = "dateTime")
+```
+
+```{r}
+library(readr)
+fCHL_LO <- read_csv("LOswego.csv")
+chlA_LO <-read_csv("LOswegoSamples.csv")
+```
+
+```{r}
+# converting 'dateTime' columns to POSIXct to handle time differences
+chlA_LO$dateTime <- as.POSIXct(chlA_LO$dateTime)
+fCHL_LO$dateTime <- as.POSIXct(fCHL_LO$dateTime)
+
+max_diff <- as.difftime(10, units = "mins") # time difference in minutes
+
+merged_rows <- list() 
+
+# Loop over each row in chlA_LO
+for (i in 1:nrow(chlA_LO)) {
+    time_left <- chlA_LO$dateTime[i]   # Get the current time in the left dataset
+    time_diffs <- abs(fCHL_LO$dateTime - time_left) # absolute time differences with all rows in the right dataset
+  # Find the row in the right dataset with the smallest time difference
+  min_diff <- min(time_diffs)
+  
+  # If the smallest difference is within the allowed limit, merge the rows
+  if (min_diff <= max_diff) {
+    closest_index <- which.min(time_diffs) # Get the index of the closest time
+    merged_row <- cbind(chlA_LO[i, ], fCHL_LO[closest_index, ]) #combining both rows
+    merged_rows[[i]] <- merged_row # Append the merged row to the list
+  }
+}
+
+result <- do.call(rbind, merged_rows) # combining all rows into new df
+result
+```
+
+```{r}
+attach(result)
+```
+
+```{r}
+
+model <- lm(ResultMeasureValue ~ fCHL, data = result)
+summary(model)
+
+```
+
+
+```{r}
+attach(result)
+plot(fCHL,ResultMeasureValue) #, pch=16)
+```
+
+
+```{r}
+result$log_chlA <- log(result$ResultMeasureValue)
+
+result$log_fCHL <- log(result$fCHL)
+
+log_model <- lm(log_chlA ~ log_fCHL, data = result)
+
+summary(log_model)
+
+```
+chlA_test <- + 1.22 * result$fCHL - 1.41
+
+
+chlA_fCHL <- data.frame(chlA=chlA_test, fCHL=result$fCHL)
+chlA_fCHL
+
+
+

@@ -5,3 +5,10 @@
 # https://or.water.usgs.gov/cgi-bin/grapher/tabler.pl?site_id=14207200&chla=on&begin_date=20010426&end_date=20240821
 library(dataRetrieval)
 # 14211720 Willamette River at Portland
+
+# doing a full join (for now) by dateTime
+merged_data <- merge(LOswego, LOswegoSamples, by = "dateTime", all = TRUE)
+
+library(dplyr)
+merged_data1 <- LOswego %>%
+  inner_join(LOswegoSamples, by = "dateTime")
